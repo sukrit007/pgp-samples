@@ -32,3 +32,7 @@ java -jar pgp-samples-1.0.jar
 Here is snippet of code that sets keyId, fingerprint and payload to be encrypted.
 [/src/main/java/com/meltmedia/pgp/samples/KeyManagement.java#L211-L215](/src/main/java/com/meltmedia/pgp/samples/KeyManagement.java#L211-L215).
 
+## References  
+- [OpenPGP HKP: For Retrieving Keys](https://tools.ietf.org/html/draft-shaw-openpgp-hkp-00)  
+- [Bouncy Castly: For OpenPGP ENcryption](https://www.bouncycastle.org/)  
+
