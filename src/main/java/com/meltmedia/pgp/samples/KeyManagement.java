@@ -36,7 +36,7 @@ import static org.apache.commons.codec.binary.Hex.encodeHexString;
 public class KeyManagement {
 
   static final Logger logger = LoggerFactory.getLogger(KeyManagement.class);
-  static final int PAYLOAD_ENCRYPTION_ALG = PGPEncryptedData.CAST5;
+  static final int PAYLOAD_ENCRYPTION_ALG = PGPEncryptedData.AES_128;
   static final int BUFFER_SIZE = 512; // For encryption
   static final List<String> DEFAULT_FINGER_PRINTS = Collections.emptyList();
 
