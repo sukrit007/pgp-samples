@@ -2,7 +2,12 @@
 PGP Encryption example (using java7)
 
 This is just a sample  demonstrating encryption using PGP using java7. For production usage, you might need better caching 
-strategy.
+strategy. This sample:  
+- Fetches PGP Public key from key server
+- Validates public key with known set of fingerprints
+- Finds recently created subkey that is non expired, non revoked and can be used for encryption.
+- Encrypts sample json payload using PGP public key
+
 
 ## Running Sample
 ```
@@ -20,6 +25,7 @@ java -jar pgp-samples-1.0.jar
 ```
 
 **Note:**  All depedendent jar can be found in libs folder of distribution. 
+
 
 ## Modifying example
 
