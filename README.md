@@ -8,6 +8,8 @@ strategy. This sample:
 - Finds recently created subkey that is non expired, non revoked and can be used for encryption.
 - Encrypts sample json payload using PGP public key
 
+## Requirements
+- JDK 1.6+
 
 ## Running Sample
 ```

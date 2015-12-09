@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * This is just a prototype explaining encryption using PGP Public key.
@@ -56,7 +58,7 @@ public class KeyManagement {
   public KeyManagement(Collection<String> validMasterFingerPrints, String keyServer, String cacheSpec) {
     this.keyServer = keyServer;
 
-    this.validMasterFingerprints = new TreeSet<>(validMasterFingerPrints == null ?
+    this.validMasterFingerprints = new TreeSet<String>(validMasterFingerPrints == null ?
         DEFAULT_FINGER_PRINTS: validMasterFingerPrints);
     cacheSpec = Strings.isNullOrEmpty(cacheSpec) ? DEFAULT_CACHE_SPEC : cacheSpec;
     this.cache = CacheBuilder.from(cacheSpec)
@@ -100,7 +102,7 @@ public class KeyManagement {
             validMasterFingerprints.contains(masterKeyFingerPrint),
         String.format("Not expecting master key with fingerprint: %s", masterKeyFingerPrint));
 
-    Set<PGPPublicKey> validKeys = new TreeSet<>(new PublicKeyComparator());
+    Set<PGPPublicKey> validKeys = new TreeSet<PGPPublicKey>(new PublicKeyComparator());
 
     // Load all subkeys and sort them in descending order of creation date.
     Iterators.addAll(validKeys, Iterators.filter(pgpPub.getPublicKeys(), new Predicate<PGPPublicKey>() {
@@ -230,25 +232,36 @@ public class KeyManagement {
 
 
     PGPLiteralDataGenerator literalGen = new PGPLiteralDataGenerator();
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      try (
-          ArmoredOutputStream armoredOutputStream = new ArmoredOutputStream(outputStream);
-          // open an output stream connected to the encrypted data generator
-          // and have the generator write its data out to the ascii-encoding stream
-          OutputStream encryptedOut = encryptGen.open(armoredOutputStream, new byte[BUFFER_SIZE]);
-          OutputStream compressedOut = compressor.open(encryptedOut);
+    ByteArrayOutputStream outputStream = null;
+    ArmoredOutputStream armoredOutputStream  = null;
+    OutputStream encryptedOut = null;
+    OutputStream compressedOut = null;
+    OutputStream literalOut = null;
+    try {
+      outputStream = new ByteArrayOutputStream();
+      armoredOutputStream = new ArmoredOutputStream(outputStream);
 
-          // now we have a stream connected to a data compressor, which is connected to
-          // a data encryptor, which is connected to an ascii-encoder.
-          // into that we want to write a PGP "literal" object, which is just a named
-          // piece of data (as opposed to a specially-formatted key, signature, etc)
-          OutputStream literalOut = literalGen.open(compressedOut, PGPLiteralDataGenerator.TEXT,
-              "form-data", new Date(), new byte[BUFFER_SIZE])
-      ) {
-        literalOut.write(payload.getBytes("UTF-8"));
-      }
-      return outputStream.toString("UTF-8");
+      // open an output stream connected to the encrypted data generator
+      // and have the generator write its data out to the ascii-encoding stream
+      encryptedOut = encryptGen.open(armoredOutputStream, new byte[BUFFER_SIZE]);
+      compressedOut = compressor.open(encryptedOut);
+
+      // now we have a stream connected to a data compressor, which is connected to
+      // a data encryptor, which is connected to an ascii-encoder.
+      // into that we want to write a PGP "literal" object, which is just a named
+      // piece of data (as opposed to a specially-formatted key, signature, etc)
+      literalOut = literalGen.open(compressedOut, PGPLiteralDataGenerator.TEXT,
+          "form-data", new Date(), new byte[BUFFER_SIZE]);
+
+      literalOut.write(payload.getBytes("UTF-8"));
+    } finally {
+      closeQuietly(literalOut);
+      closeQuietly(compressedOut);
+      closeQuietly(encryptedOut);
+      closeQuietly(armoredOutputStream);
+      closeQuietly(outputStream);
     }
+    return outputStream.toString("UTF-8");
   }
 
   public static void main(String... args) throws UnirestException, IOException, PGPException, ExecutionException {
