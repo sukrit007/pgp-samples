@@ -18,7 +18,7 @@ strategy. This sample:
 
 ## Creating Distribution
 ```
-./gradlew distZip   
+./gradlew distZip
 ```
 
 This will create distribution at location: `build/distribution/pgp-samples-1.0.zip`.  You can extract this distribution and run
@@ -26,7 +26,7 @@ This will create distribution at location: `build/distribution/pgp-samples-1.0.z
 java -jar pgp-samples-1.0.jar
 ```
 
-**Note:**  All depedendent jar can be found in libs folder of distribution. 
+**Note:**  All dependent jar can be found in libs folder of distribution.
 
 
 ## Modifying example

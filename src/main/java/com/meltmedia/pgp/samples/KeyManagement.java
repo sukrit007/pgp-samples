@@ -185,7 +185,7 @@ public class KeyManagement {
         "3ji97wViCPcRVz1rA1LcecpQw02kZm4JZopVwiKrWm7o+7vI2UYUIeMS3ccH9k3TshHE\n" +
         "=cilC\n" +
         "-----END PGP PUBLIC KEY BLOCK-----";
-    return readPublicKey(fetchKeyRaw(keyId));
+    return readPublicKey(rawKey);
   }
 
   /**
